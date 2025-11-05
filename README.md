@@ -18,4 +18,8 @@ A minimal FastAPI backend.
 2. Build and run Docker containers: `docker-compose up --build`
 3. Open the application in your browser: `http://localhost:8000`
 
-Docker will be added next step.
+## CORS Configuration
+CORS (Cross-Origin Resource Sharing) can be configured in the `.env` file.
+
+- To allow all origins, set `CORS_ALLOW_ALL=true`.
+- To allow specific origins, set `CORS_ALLOW_ALL=false` and provide a comma-separated list of allowed origins in `CORS_ORIGINS`, for example: `CORS_ORIGINS=https://example.com,https://dev.local`
