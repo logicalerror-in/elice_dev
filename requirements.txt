@@ -6,3 +6,4 @@ redis
 pydantic-settings
 passlib[bcrypt]
 PyJWT
+email-validator
