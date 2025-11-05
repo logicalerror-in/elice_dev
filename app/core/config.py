@@ -3,7 +3,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     APP_PORT: int = 8000
     CORS_ALLOW_ALL: bool = True
-    CORS_ORIGINS: str = "" 
+    CORS_ORIGINS: str = ""
+    DATABASE_URL: str
+    REDIS_URL: str
 
 
     model_config = SettingsConfigDict(
