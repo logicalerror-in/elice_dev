@@ -6,6 +6,10 @@ class Settings(BaseSettings):
     CORS_ORIGINS: str = ""
     DATABASE_URL: str
     REDIS_URL: str
+    JWT_SECRET: str
+    JWT_ALG: str
+    ACCESS_MIN: int
+    REFRESH_DAYS: int
 
 
     model_config = SettingsConfigDict(
