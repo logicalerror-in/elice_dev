@@ -63,3 +63,8 @@ def decode_token(token: str, verify_exp: bool = True) -> dict:
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired token",
         ) from e
+
+
+# --- backward compatibility alias ---
+def create_access_jwt(*args, **kwargs):
+    return create_access_token(*args, **kwargs)
