@@ -4,9 +4,9 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1 import auth, posts
 from app.core.config import settings
+from app.core.errors import register_handlers
 from app.db.session import engine
 from app.db.base import Base
-from app.errors.handlers import register_exception_handlers
 import app.models.user
 import app.models.post
 
@@ -20,7 +20,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="elice-dev", version="0.1.0", lifespan=lifespan)
 
-register_exception_handlers(app)
+register_handlers(app)
 
 allow_origins = ["*"] if settings.CORS_ALLOW_ALL else settings.cors_origins_list()
 
