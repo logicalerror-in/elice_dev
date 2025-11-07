@@ -1,30 +1,54 @@
-from redis.asyncio import Redis
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from passlib.context import CryptContext
+from redis.asyncio import Redis
 
 from app.core.config import settings
 from app.core.security import (
     create_access_jwt,
     issue_refresh_token,
-    pwd_context,
     revoke_refresh_token,
 )
-from app.errors.exceptions import Conflict, Unauthorized
+from app.errors.exceptions import Unauthorized
+from app.models.user import User
 from app.repositories.users import users_repo
-from app.schemas.auth import SignUpIn, UserOut
+from app.schemas.auth import SignUpPayload, SignUpResponse
+
+try:
+    from app.errors.http import http_conflict
+except ImportError:
+    from fastapi import HTTPException
+
+    def http_conflict(detail: str):
+        raise HTTPException(status_code=409, detail=detail)
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 class AuthService:
-    async def signup(self, db: AsyncSession, payload: SignUpIn) -> UserOut:
-        password_hash = pwd_context.hash(payload.password)
-        user = await users_repo.create(
-            db,
+    async def signup(self, db: AsyncSession, payload: SignUpPayload) -> SignUpResponse:
+        existing = await db.execute(select(User).where(User.email == payload.email))
+        if existing.scalar_one_or_none():
+            raise http_conflict("Email already registered")
+
+        password_hash = pwd_context.hash(payload.password[:72])
+
+        user = User(
             fullname=payload.fullname,
             email=payload.email,
             password_hash=password_hash,
         )
-        if not user:
-            raise Conflict("Email already registered")
-        return UserOut.from_orm(user)
+        db.add(user)
+        await db.flush()
+        await db.commit()
+        await db.refresh(user)
+
+        return SignUpResponse(
+            id=user.id,
+            fullname=user.fullname,
+            email=user.email,
+            created_at=user.created_at,
+        )
 
     async def login(
         self, db: AsyncSession, redis: Redis, email: str, password: str

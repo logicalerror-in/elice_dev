@@ -24,10 +24,16 @@ from app.core.security import (
 )
 from app.models.user import User
 from app.repositories.users import users_repo
-from app.schemas.auth import UserOut
+from app.schemas.auth import SignUpPayload, SignUpResponse, UserOut
+from app.services import auth as auth_service
 from app.services import refresh_store
 
 router = APIRouter()
+
+
+@router.post("/signup", status_code=201, response_model=SignUpResponse)
+async def signup(payload: SignUpPayload, db: AsyncSession = Depends(get_db)):
+    return await auth_service.signup(db, payload)
 
 
 @router.post("/login")
