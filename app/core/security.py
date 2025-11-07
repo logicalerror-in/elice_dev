@@ -65,6 +65,14 @@ def decode_token(token: str, verify_exp: bool = True) -> dict:
         ) from e
 
 
-# --- backward compatibility alias ---
+# --- backward compatibility aliases ---
 def create_access_jwt(*args, **kwargs):
     return create_access_token(*args, **kwargs)
+
+def issue_refresh_token(*args, **kwargs):
+    """
+    과거 import 경로 호환을 위해 core.security에서 재노출.
+    실제 구현은 서비스 레이어(app.services.refresh_store.issue_refresh_token)로 위임합니다.
+    """
+    from app.services.refresh_store import save_refresh as _impl
+    return _impl(*args, **kwargs)
