@@ -2,12 +2,13 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.v1 import auth
+from app.api.v1 import auth, posts
 from app.core.config import settings
 from app.db.session import engine
 from app.db.base import Base
 from app.errors.handlers import register_exception_handlers
 import app.models.user
+import app.models.post
 
 
 @asynccontextmanager
@@ -32,6 +33,7 @@ app.add_middleware(
 )
 
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
+app.include_router(posts.router, prefix="/api/v1/posts", tags=["posts"])
 
 
 @app.get("/")
