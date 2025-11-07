@@ -6,6 +6,7 @@ from fastapi import (
     Cookie,
     Depends,
     HTTPException,
+    Request,
     Response,
     status,
 )
@@ -31,6 +32,7 @@ router = APIRouter()
 
 @router.post("/login")
 async def login(
+    request: Request,
     response: Response,
     db: AsyncSession = Depends(get_db),
     redis: Redis = Depends(get_redis),
@@ -38,6 +40,20 @@ async def login(
     password: str = Body(...),
     return_refresh_in_body: bool = Body(False),
 ):
+    # Rate limit
+    client_ip = request.client.host
+    rl_key = f"rl:login:{email}:{client_ip}"
+    async with redis.pipeline() as pipe:
+        pipe.incr(rl_key)
+        pipe.expire(rl_key, 300)
+        req_count, _ = await pipe.execute()
+
+    if req_count > 5:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many login attempts",
+        )
+
     enforce_password_length(password)
     user = await users_repo.get_by_email(db, email=email)
     if not user or not pwd_context.verify(password, user.hashed_password):
